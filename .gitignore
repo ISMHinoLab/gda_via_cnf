@@ -1,0 +1,13 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# log and debug file
+*.log
+log*
+*debug*
+
+# data
+MNIST
