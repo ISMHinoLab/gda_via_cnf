@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from goat_util import generate_domains
 import util
 
-    
+
 class MLP(nn.Module):
     def __init__(self, num_labels, input_dim, hidden_dim):
         super(MLP, self).__init__()
@@ -138,8 +138,8 @@ class AuxiliaryModel(MLP):
         pred_unl = pred_unl / pred_unl.sum(1).view(-1, 1)
         soft_label_lp = pred_unl
         return soft_label_lp
-    
-    
+
+
 # DEBUG of GOAT
 class ENCODER(nn.Module):
     def __init__(self):
@@ -151,8 +151,8 @@ class ENCODER(nn.Module):
     def forward(self, x):
         x = self.encode(x)
         return x
-    
-    
+
+
 class GOATMLP(nn.Module):
     def __init__(self, mode="mnist", n_class=10, hidden=1024):
         super(GOATMLP, self).__init__()
@@ -319,6 +319,7 @@ def AuxSelfTrain(x_all, y_all, num_inter, hidden_dim=64, n_epochs=100, weight_de
     
     # gradual self-training
     all_model = [model]
+    pseudo_intermediate = []
     for m in range(1, num_inter):
         top_s = int(((num_inter - m - 1) * num_source) / num_inter)
         top_t = int(((m + 1) * num_target) / num_inter)
@@ -338,10 +339,13 @@ def AuxSelfTrain(x_all, y_all, num_inter, hidden_dim=64, n_epochs=100, weight_de
         else:
             x_inter = np.vstack([x_inter[conf_index_s], x_target[conf_index_t]])
             y_inter = np.hstack([y_inter[conf_index_s], pseudo_yt[conf_index_t]])
+            
         print(f'top_s {top_s}, top_t {top_t}, x_inter size {x_inter.shape[0]}')
+        pseudo_intermediate.append(x_inter)
+        
         model, _ = train_classifier(model, x_inter, y_inter, n_epochs, weight_decay)
         all_model.append(model)
-    return all_model, None
+    return all_model, pseudo_intermediate
 
 
 def SequentialGIFT(x_all, y_all, iters, adapt_lmbda=3, hidden_dim=64, n_epochs=100, weight_decay=1e-3) -> (list, None):

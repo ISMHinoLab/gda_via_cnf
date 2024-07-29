@@ -23,14 +23,14 @@ def fit_umap(x_all, y_all, **umap_kwargs) -> list:
 
 
 settings = {
-            'portraits': (datasets2.load_Portraits, None),
-            'mnist': (datasets2.load_RotatedMNIST2, [0, 14, 28, 29]),
-            'mnist_dense': (datasets2.load_RotatedMNIST2, None),
-            'rxrx1': (datasets2.load_RxRx1, None),
-            'shift15m': (datasets2.load_shift15m, None),
             'tox21a': (datasets2.load_Tox21a, None),
             'tox21b': (datasets2.load_Tox21b, None),
             'tox21c': (datasets2.load_Tox21c, None),
+            'portraits': (datasets2.load_Portraits, None),
+            'mnist': (datasets2.load_RotatedMNIST2, [0, 14, 28, 29]),
+            # 'mnist_dense': (datasets2.load_RotatedMNIST2, None),
+            'rxrx1': (datasets2.load_RxRx1, None),
+            'shift15m': (datasets2.load_shift15m, None),
            }
 
 
@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     warnings.simplefilter('ignore')
 
-    components = 2 ** np.arange(1, 6)
+    components = [4, 32]
 
     for name in settings.keys():
         metric = "euclidean"

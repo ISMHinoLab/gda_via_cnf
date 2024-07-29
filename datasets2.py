@@ -246,6 +246,44 @@ def make_gradual_gaussian(n_dims, n_sample=2000):
     return x_all, y_all
 
 
+def make_gradual_gaussian2(n_sample=2000, imbalanced=False):
+    n_dims = 2
+    
+    # mu_z -> class 0: (3.0, 0.0)^\top, class 1: (-3.0, 0.0)^\top
+    means0 = torch.tensor([(3.0, 1.0),
+                           (6.0, 3.0),
+                           (8.0, 3.0),
+                           (3.0, 3.0),
+                           (3.0, 5.0)])
+
+    means1 = torch.tensor([(-3.0, 1.0),
+                           (-6.0, 3.0),
+                           (-8.0, 3.0),
+                           (-3.0, 3.0),
+                           (-3.0, 5.0)])
+
+    sigma = torch.eye(n_dims)
+
+    x_all, y_all = [], []
+    for mu1, mu2 in zip(means0, means1):
+        prior1 = torch.distributions.MultivariateNormal(mu1, sigma)
+        prior2 = torch.distributions.MultivariateNormal(mu2, sigma)
+        x = torch.vstack([prior1.sample(torch.Size([n_sample//2])),
+                          prior2.sample(torch.Size([n_sample//2]))])
+        y = torch.hstack([torch.zeros(n_sample//2),
+                          torch.ones(n_sample//2)])
+        x_all.append(x.numpy())
+        y_all.append(y.numpy())
+    # add eval data
+    x_all.append(x.numpy())
+    y_all.append(y.numpy())
+    
+    if imbalanced:
+        return make_imbalance_data(x_all, y_all)
+    else:
+        return x_all, y_all
+
+
 def make_gradual_block(steps=4, n_class=5, n_sample=2000, scaled=False, imbalanced=False):
     """
     @param
@@ -357,12 +395,14 @@ def load_Tox21(domain: str, eval_size:int=500, seed:int=1234):
     # We consider compounds as toxic that the compound shows a positive reaction for any of the tests.
     df['ToxSum'] = df.iloc[:, :12].sum(axis=1, skipna=True)
     df['y'] = df['ToxSum'].apply(lambda s: 1 if s >= 1 else 0)
+    
     # add Mol object
     RDLogger.DisableLog('rdApp.*')
     PandasTools.AddMoleculeColumnToFrame(df, smilesCol='smiles')
     df['NHOH'] = df['ROMol'].apply(Descriptors.NHOHCount)
     df['RingCount'] = df['ROMol'].apply(Descriptors.RingCount)
     df['NumHDonors'] = df['ROMol'].apply(Descriptors.NumHDonors)
+    
     # get RDKit descriptors
     x = []
     for name, func in Descriptors.descList:
@@ -373,7 +413,9 @@ def load_Tox21(domain: str, eval_size:int=500, seed:int=1234):
     x = x[:, no_na_column]
     x = x.astype(np.float32)
     no_inf_column = ~np.isinf(x).any(axis=0)
-    x = x[:, no_inf_column]    
+    x = x[:, no_inf_column]
+    x = StandardScaler().fit_transform(x)
+
     y = df['y'].values
     x_all, y_all = [], []
     for i in [0, 1, 2]:  # source, inter, target
@@ -489,8 +531,6 @@ if __name__ == '__main__':
     obj = {2: (x_all, y_all)}
     pd.to_pickle(obj, './data/data_scaled_moon.pkl')
     
-    obj = {}
-    for d in [2, 4, 8]:
-        x_all, y_all = make_gradual_gaussian(n_dims=d)
-        obj[d] = (x_all, y_all)
+    x_all, y_all = make_gradual_gaussian2(imbalanced=True)
+    obj = {2: (x_all, y_all)}
     pd.to_pickle(obj, './data/data_gaussian.pkl')

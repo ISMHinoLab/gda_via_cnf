@@ -10,7 +10,7 @@ from cnf_args import parser
 import util
 from Distributions import GaussianMixtureDA, GaussianMixtureEM, Gaussian, knnDistribution
 
-# dataset name: n_dim, n_class
+# dataset name: n_dim, n_class, 
 settings = {
             'moon': (2, 2),
             'scaled_moon': (2, 2),
@@ -21,9 +21,9 @@ settings = {
             'mnist_vae': (4, 10),
             'mnist_dense': (4, 10),
             'portraits': (4, 2), # mean_r 3, k=5
-            'tox21a': (4, 2), # mean_r 3, k=10
+            'tox21a': (4, 2), # mean_r 3, k=5
             'tox21b': (4, 2), # mean_r 3, k=5
-            'tox21c': (4, 2), # mean_r 3, k=10
+            'tox21c': (4, 2), # mean_r 3, k=5
             'rxrx1': (4, 4), # mean_r 10, k=10
             'shift15m': (4, 7), # mean_r 10, k=15
            }
@@ -39,6 +39,10 @@ def get_datasets(args, return_eval=False):
     # ablation study
     if args.dataset == 'mnist_dense':
         given_domain = [0, args.inter_index, 28]
+        x_all = [x_all[i].copy() for i in given_domain]
+        y_all = [y_all[i].copy() for i in given_domain]
+    elif args.dataset == 'gaussian':
+        given_domain = [0, args.inter_index, 4]
         x_all = [x_all[i].copy() for i in given_domain]
         y_all = [y_all[i].copy() for i in given_domain]
     # unsupervised or semi-supervised
@@ -79,9 +83,9 @@ def get_priors(args, x_all):
     # for i in range(num_domain-1):
     for i in range(len(x_all) - 1):
         if args.log_prob_method == 'gmm':
-            p = GaussianMixtureEM(x_all[i], args.log_prob_param, args.seed)
+            p = GaussianMixtureEM(x_all[i], args.log_prob_param[i], args.seed)
         elif args.log_prob_method == 'knn':
-            p = knnDistribution(x_all[i], args.log_prob_param, args.seed)
+            p = knnDistribution(x_all[i], args.log_prob_param[i], args.seed)
         priors.append(p)
     return priors
 
@@ -123,7 +127,7 @@ if __name__ == '__main__':
 
     if 'get_ipython' in globals():
         # jupyter notebook env, for debug
-        args = parser.parse_args(["--file_name", "debug", "--dataset", "mnist_dense", "--inter_index", "5", "--epochs", "3"])
+        args = parser.parse_args(["--file_name", "debug", "--dataset", "moon", "--epochs", "3"])
     else:
         args = parser.parse_args()
 

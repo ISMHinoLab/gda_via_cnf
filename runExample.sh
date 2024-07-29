@@ -15,10 +15,10 @@ python mainCNF.py --dataset block --mean_r 10 --no_inter False --label_ratio 100
 
 # Script for the experiment shown in Figure 3 of the main body of the paper.
 python mainCNF.py --dataset moon --mean_r 3 --file_name example6 --epochs 3
-python mainCNF.py --dataset moon --mean_r 3 --log_prob_method gmm --log_prob_param 30 --file_name example7 --epochs 5
+python mainCNF.py --dataset moon --mean_r 3 --log_prob_method gmm --log_prob_param 30 30 --file_name example7 --epochs 5
 
 # Script for the experiment shown in 5.5. Hyperparameters.
 # Hyperparameter k
-python mainCNF.py --dataset rxrx1 --mean_r 10 --log_prob_param 5 --file_name example8 --epochs 5
+python mainCNF.py --dataset rxrx1 --mean_r 10 --log_prob_param 5 5 --file_name example8 --epochs 5
 # Hyperparameter r
 python CrossValidation.py --dataset rxrx1 --mean_r 1 --source_only True --file_name example9 --epochs 5
